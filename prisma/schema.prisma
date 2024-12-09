@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  username     String        @db.VarChar(255)
+  email        String        @db.VarChar(255)
+  password     String        @db.VarChar(255)
+  role         Role          @default(customer)
+  phone_number Int
+  Transaction  Transaction[]
+
+  @@map("user")
+}
+
+model Schedule {
+  id                  Int                   @id @default(autoincrement())
+  date                DateTime
+  hour                String
+  price               Decimal
+  status              ScheduleStatus        @default(available)
+  TransactionSchedule TransactionSchedule[]
+
+  @@unique([date, hour])
+  @@map("schedule")
+}
+
+model Transaction {
+  id           String            @id @default(cuid())
+  userId       Int               @map("user_id")
+  bandName     String            @map("band_name") @db.VarChar(255)
+  duration     Int
+  paymentProof String
+  totalPrice   Decimal
+  notes        String
+  status       TransactionStatus
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  user                User                  @relation(fields: [userId], references: [id])
+  TransactionSchedule TransactionSchedule[]
+
+  @@map("transaction")
+}
+
+model TransactionSchedule {
+  id            Int    @id @default(autoincrement())
+  transactionId String @map("transaction_id")
+  scheduleId    Int    @map("schedule_id")
+
+  transaction Transaction @relation(fields: [transactionId], references: [id])
+  schedule    Schedule    @relation(fields: [scheduleId], references: [id])
+
+  @@unique([transactionId, scheduleId])
+  @@map("transaction_schedule")
+}
+
+enum ScheduleStatus {
+  booked
+  available
+}
+
+enum Role {
+  admin
+  customer
+}
+
+enum TransactionStatus {
+  approved
+  reject
+  pending
+}
