@@ -15,11 +15,11 @@ datasource db {
 
 model User {
   id          Int      @id @default(autoincrement())
-  username    String   @db.VarChar(255)
+  username    String   @unique @db.VarChar(255)
   email       String   @db.VarChar(255)
-  password    String   @db.VarChar(255)
+  password    String   @db.VarChar(100)
   role        Role     @default(customer)
-  phoneNumber Int      @map("phone_number")
+  phoneNumber String   @map("phone_number")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   isDeleted   Boolean  @default(false)
@@ -31,11 +31,13 @@ model User {
 }
 
 model Schedule {
-  id                  Int                   @id @default(autoincrement())
-  date                DateTime
-  hour                String
-  price               Decimal
-  status              ScheduleStatus        @default(available)
+  id        Int            @id @default(autoincrement())
+  date      DateTime
+  hour      String
+  price     Decimal
+  status    ScheduleStatus @default(available)
+  isDeleted Boolean        @default(false)
+
   TransactionSchedule TransactionSchedule[]
 
   @@map("schedule")
@@ -53,6 +55,7 @@ model Transaction {
   status          TransactionStatus
   createdAt       DateTime          @default(now()) @map("created_at")
   updatedAt       DateTime          @updatedAt @map("updated_at")
+  isDeleted       Boolean           @default(false)
 
   user                User                  @relation(fields: [userId], references: [id])
   TransactionSchedule TransactionSchedule[]
