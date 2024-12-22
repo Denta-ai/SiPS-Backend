@@ -9,31 +9,31 @@ async function main() {
         username: 'user1',
         email: 'user1@example.com',
         password: 'password1',
-        phone_number: 123456789,
+        phoneNumber: 123456789,
       },
       {
         username: 'user2',
         email: 'user2@example.com',
         password: 'password2',
-        phone_number: 234567890,
+        phoneNumber: 234567890,
       },
       {
         username: 'user3',
         email: 'user3@example.com',
         password: 'password3',
-        phone_number: 345678901,
+        phoneNumber: 345678901,
       },
       {
         username: 'user4',
         email: 'user4@example.com',
         password: 'password4',
-        phone_number: 456789012,
+        phoneNumber: 456789012,
       },
       {
         username: 'user5',
         email: 'user5@example.com',
         password: 'password5',
-        phone_number: 567890123,
+        phoneNumber: 567890123,
       },
     ],
   });
@@ -62,6 +62,7 @@ async function main() {
         totalPrice: 100.0,
         notes: 'Some notes',
         status: 'pending',
+        transactionCode: 'TX-A7gjs',
       },
       {
         userId: usersData[1].id,
@@ -71,6 +72,7 @@ async function main() {
         totalPrice: 200.0,
         notes: 'Some notes',
         status: 'approved',
+        transactionCode: 'TX-A6gjs',
       },
       {
         userId: usersData[2].id,
@@ -80,6 +82,7 @@ async function main() {
         totalPrice: 120.0,
         notes: 'Some notes',
         status: 'pending',
+        transactionCode: 'TX-A5gjs',
       },
       {
         userId: usersData[3].id,
@@ -89,6 +92,7 @@ async function main() {
         totalPrice: 240.0,
         notes: 'Some notes',
         status: 'approved',
+        transactionCode: 'TX-A4gjs',
       },
       {
         userId: usersData[4].id,
@@ -98,6 +102,7 @@ async function main() {
         totalPrice: 100.0,
         notes: 'Some notes',
         status: 'pending',
+        transactionCode: 'TX-A2gjs',
       },
     ],
   });
