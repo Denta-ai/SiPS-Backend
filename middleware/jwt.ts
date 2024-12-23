@@ -4,10 +4,10 @@ import { JWT_SECRET } from '../env';
 import { GenerateResponse } from '../utils/GenerateResponse';
 import httpStatusCode from '../utils/HttpStatusCode';
 
-type JWTPayload = {
+export type JWTPayload = {
   username: string;
   email: string;
-  phoneNumber: number;
+  phoneNumber: string;
   role: 'admin' | 'customer';
 };
 

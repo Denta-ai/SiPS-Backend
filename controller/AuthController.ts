@@ -2,10 +2,11 @@ import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { GenerateResponse } from '../utils/GenerateResponse';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { JWT_SECRET, SALT } from '../env';
+import { SALT } from '../env';
 import httpStatusCode from '../utils/HttpStatusCode';
 import { UserWithoutPassword } from '../utils/SelectCondition';
+import { CustomRequest } from '../middleware/jwt';
+import { generateJwtToken } from '../utils/GenerateJwtToken';
 
 export const register = async (req: Request, res: Response) => {
   const { username, email, password, phoneNumber } = req.body;
@@ -69,15 +70,7 @@ export const login = async (req: Request, res: Response) => {
       return;
     }
 
-    const token = jwt.sign(
-      {
-        username: user.username,
-        email: user.email,
-        phoneNumber: user.phoneNumber,
-        role: user.role,
-      },
-      JWT_SECRET
-    );
+    const token = generateJwtToken(user);
     GenerateResponse(res, httpStatusCode.OK, 'Login successful', { ...user, token });
   } catch (error) {
     console.log(error);
@@ -86,3 +79,16 @@ export const login = async (req: Request, res: Response) => {
 };
 export const forgotPassword = (req: Request, res: Response) => {};
 export const resetPassword = (req: Request, res: Response) => {};
+
+export const oauthGoogleLogin = (req: Request, res: Response) => {
+  const { user } = req as CustomRequest;
+
+  const token = generateJwtToken(user);
+  GenerateResponse(res, httpStatusCode.OK, 'Login successful', {
+    username: user.username,
+    email: user.email,
+    phoneNumber: user.phoneNumber,
+    role: user.role,
+    token,
+  });
+};

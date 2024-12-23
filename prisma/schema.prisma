@@ -14,15 +14,17 @@ datasource db {
 }
 
 model User {
-  id          Int      @id @default(autoincrement())
-  username    String   @unique @db.VarChar(255)
-  email       String   @db.VarChar(255)
-  password    String   @db.VarChar(100)
-  role        Role     @default(customer)
-  phoneNumber String   @map("phone_number")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  isDeleted   Boolean  @default(false)
+  id             Int      @id @default(autoincrement())
+  username       String   @unique @db.VarChar(255)
+  email          String   @db.VarChar(255)
+  password       String   @db.VarChar(100)
+  role           Role     @default(customer)
+  phoneNumber    String   @map("phone_number")
+  profilePicture String?  @map("profile_picture")
+  googleId       String?  @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  isDeleted      Boolean  @default(false)
 
   Transaction Transaction[]
 
