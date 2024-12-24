@@ -9,6 +9,8 @@ export type JWTPayload = {
   email: string;
   phoneNumber: string;
   role: 'admin' | 'customer';
+  otp?: string;
+  otpExpiresAt?: number;
 };
 
 export interface CustomRequest extends Request {

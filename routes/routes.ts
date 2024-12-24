@@ -13,8 +13,8 @@ const routes: Router = express.Router();
 
 routes.post('/api/register', register);
 routes.post('/api/login', login);
-routes.post('/api/reset-password', resetPassword);
 routes.post('/api/forgot-password', forgotPassword);
+routes.post('/api/reset-password', resetPassword);
 routes.get(
   '/api/google',
   passport.authenticate('google', { session: false, scope: ['email', 'profile'] })

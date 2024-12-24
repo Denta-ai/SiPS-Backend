@@ -1,12 +1,14 @@
-import { Request, Response } from 'express';
-import prisma from '../lib/prisma';
-import { GenerateResponse } from '../utils/GenerateResponse';
 import bcrypt from 'bcryptjs';
+import { Request, Response } from 'express';
 import { SALT } from '../env';
-import httpStatusCode from '../utils/HttpStatusCode';
-import { UserWithoutPassword } from '../utils/SelectCondition';
+import prisma from '../lib/prisma';
 import { CustomRequest } from '../middleware/jwt';
 import { generateJwtToken } from '../utils/GenerateJwtToken';
+import { GenerateResponse } from '../utils/GenerateResponse';
+import httpStatusCode from '../utils/HttpStatusCode';
+import { UserWithoutPassword } from '../utils/SelectCondition';
+import crypto from 'node:crypto';
+import { sendMail } from '../service/mail';
 
 export const register = async (req: Request, res: Response) => {
   const { username, email, password, phoneNumber } = req.body;
@@ -77,7 +79,31 @@ export const login = async (req: Request, res: Response) => {
     GenerateResponse(res, httpStatusCode.INTERNAL_SERVER_ERROR, 'Internal server error', null);
   }
 };
-export const forgotPassword = (req: Request, res: Response) => {};
+
+export const forgotPassword = async (req: Request, res: Response) => {
+  const { email } = req.body;
+
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      GenerateResponse(res, httpStatusCode.NOT_FOUND, 'User not found', 'null');
+      return;
+    }
+
+    const otp = crypto.randomInt(100000, 999999).toString();
+    const otpExpiresAt = Date.now() + 1 * 60 * 1000;
+
+    const token = generateJwtToken({ ...user, otp, otpExpiresAt });
+
+    sendMail(email, 'OTP verification', `Your OTP is: ${otp}.`);
+
+    GenerateResponse(res, 200, 'OTP sent', { token });
+  } catch (error) {
+    console.log(error);
+    GenerateResponse(res, httpStatusCode.INTERNAL_SERVER_ERROR, 'Internal server error', null);
+  }
+};
 export const resetPassword = (req: Request, res: Response) => {};
 
 export const oauthGoogleLogin = (req: Request, res: Response) => {
