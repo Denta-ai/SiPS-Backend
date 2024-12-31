@@ -16,7 +16,7 @@ datasource db {
 model User {
   id             Int      @id @default(autoincrement())
   username       String   @unique @db.VarChar(255)
-  email          String   @db.VarChar(255)
+  email          String   @unique @db.VarChar(255)
   password       String   @db.VarChar(100)
   role           Role     @default(customer)
   phoneNumber    String   @map("phone_number")
@@ -28,7 +28,6 @@ model User {
 
   Transaction Transaction[]
 
-  @@unique([email])
   @@map("user")
 }
 

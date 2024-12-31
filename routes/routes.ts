@@ -5,6 +5,7 @@ import {
   oauthGoogleLogin,
   register,
   resetPassword,
+  verifyOtp,
 } from '../controller/AuthController';
 import { restrict } from '../middleware/jwt';
 import { deleteUser, getAllUsers, getUserById, updateUser } from '../controller/UserController';
@@ -14,6 +15,7 @@ const routes: Router = express.Router();
 routes.post('/api/register', register);
 routes.post('/api/login', login);
 routes.post('/api/forgot-password', forgotPassword);
+routes.post('/api/verify-otp', verifyOtp);
 routes.post('/api/reset-password', resetPassword);
 routes.get(
   '/api/google',

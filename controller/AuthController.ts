@@ -1,39 +1,43 @@
 import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
-import { SALT } from '../env';
+import crypto from 'node:crypto';
+import { JWT_SECRET, SALT } from '../env';
 import prisma from '../lib/prisma';
-import { CustomRequest } from '../middleware/jwt';
+import { CustomRequest, JWTPayload } from '../middleware/jwt';
+import { sendMail } from '../service/mail';
 import { generateJwtToken } from '../utils/GenerateJwtToken';
 import { GenerateResponse } from '../utils/GenerateResponse';
 import httpStatusCode from '../utils/HttpStatusCode';
 import { UserWithoutPassword } from '../utils/SelectCondition';
-import crypto from 'node:crypto';
-import { sendMail } from '../service/mail';
+import jwt from 'jsonwebtoken';
 
 export const register = async (req: Request, res: Response) => {
   const { username, email, password, phoneNumber } = req.body;
 
   try {
-    let user = await prisma.user.findUnique({
-      where: { email },
+    let user = await prisma.user.findFirst({
+      where: { OR: [{ email }, { username }] },
     });
 
     const hashedPassword = await bcrypt.hash(password, SALT);
 
-    if (user && user.isDeleted === true) {
-      const updatedUser = await prisma.user.update({
-        where: { email },
-        data: { phoneNumber, username, password: hashedPassword, isDeleted: false },
-        select: UserWithoutPassword,
-      });
-
-      GenerateResponse(res, httpStatusCode.OK, 'User reactivated successfully', {
-        UserWithoutPassword,
-      });
-      return;
-    }
-
     if (user) {
+      if (user?.username === username) {
+        GenerateResponse(res, httpStatusCode.BAD_REQUEST, 'Usermame already exist', null);
+        return;
+      }
+
+      if (user.isDeleted === true) {
+        const updatedUser = await prisma.user.update({
+          where: { email },
+          data: { phoneNumber, username, password: hashedPassword, isDeleted: false },
+          select: UserWithoutPassword,
+        });
+
+        GenerateResponse(res, httpStatusCode.OK, 'User reactivated successfully', updatedUser);
+        return;
+      }
+
       GenerateResponse(res, httpStatusCode.BAD_REQUEST, 'User already exist please login', null);
       return;
     }
@@ -92,7 +96,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     }
 
     const otp = crypto.randomInt(100000, 999999).toString();
-    const otpExpiresAt = Date.now() + 1 * 60 * 1000;
+    const otpExpiresAt = Date.now() + 1 * 60 * 5000;
 
     const token = generateJwtToken({ ...user, otp, otpExpiresAt });
 
@@ -104,7 +108,78 @@ export const forgotPassword = async (req: Request, res: Response) => {
     GenerateResponse(res, httpStatusCode.INTERNAL_SERVER_ERROR, 'Internal server error', null);
   }
 };
-export const resetPassword = (req: Request, res: Response) => {};
+
+export const verifyOtp = async (req: Request, res: Response) => {
+  const { token } = req.query;
+  const { otp } = req.body;
+
+  if (!token || typeof token !== 'string') {
+    GenerateResponse(res, httpStatusCode.UNAUTHORIZED, 'Unauthorized', null);
+    return;
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
+    const user = await prisma.user.findUnique({
+      where: { email: decoded.email },
+    });
+
+    if (decoded.otp !== otp) {
+      GenerateResponse(res, httpStatusCode.BAD_REQUEST, 'Invalid OTP', null);
+      return;
+    }
+
+    if (decoded.otpExpiresAt && Date.now() > decoded.otpExpiresAt) {
+      GenerateResponse(res, httpStatusCode.BAD_REQUEST, 'OTP expired', null);
+      return;
+    }
+
+    const newToken = generateJwtToken(user as JWTPayload);
+    GenerateResponse(res, httpStatusCode.OK, 'OTP verified successfully', { ...user, newToken });
+  } catch (error) {
+    console.log(error);
+    GenerateResponse(res, httpStatusCode.INTERNAL_SERVER_ERROR, 'Internal server error', null);
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+  const { token } = req.query;
+  const { password, confirmPassword } = req.body;
+
+  if (!token || typeof token !== 'string') {
+    GenerateResponse(res, httpStatusCode.UNAUTHORIZED, 'Unauthorized', null);
+    return;
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
+    const user = await prisma.user.findUnique({
+      where: { email: decoded.email },
+    });
+
+    if (!user) {
+      GenerateResponse(res, httpStatusCode.NOT_FOUND, 'User not found', null);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      GenerateResponse(res, httpStatusCode.BAD_REQUEST, 'Password does not match', null);
+    }
+
+    const hashedPassword = await bcrypt.hash(password, SALT);
+
+    const updatedUser = await prisma.user.update({
+      where: { email: decoded.email },
+      data: { password: hashedPassword },
+      select: UserWithoutPassword,
+    });
+
+    GenerateResponse(res, 200, 'Password changed successfully', updatedUser);
+  } catch (error) {
+    console.log(error);
+    GenerateResponse(res, httpStatusCode.INTERNAL_SERVER_ERROR, 'Internal server error', null);
+  }
+};
 
 export const oauthGoogleLogin = (req: Request, res: Response) => {
   const { user } = req as CustomRequest;

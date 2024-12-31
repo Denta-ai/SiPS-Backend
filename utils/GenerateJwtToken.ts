@@ -9,6 +9,8 @@ export const generateJwtToken = (user: JWTPayload): string => {
       email: user.email,
       phoneNumber: user.phoneNumber,
       role: user.role,
+      otp: user.otp,
+      otpExipresAt: user.otpExpiresAt,
     },
     JWT_SECRET
   );
