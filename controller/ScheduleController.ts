@@ -3,7 +3,7 @@ import prisma from '../lib/prisma';
 import { GenerateResponse } from '../utils/GenerateResponse';
 import httpStatusCode from '../utils/HttpStatusCode';
 
-export const createSchedule = async (req: Request, res: Response) => {
+export const createSchedules = async (req: Request, res: Response) => {
   const { date, hour, price } = req.body;
 
   try {
@@ -61,7 +61,7 @@ export const getScheduleById = async (req: Request, res: Response) => {
   }
 };
 
-export const updateSchedule = async (req: Request, res: Response) => {
+export const updateSchedules = async (req: Request, res: Response) => {
   const { id } = req.params;
   const { date, hour, price, status } = req.body;
 
@@ -95,7 +95,7 @@ export const updateSchedule = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteSchedule = async (req: Request, res: Response) => {
+export const deleteSchedules = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {

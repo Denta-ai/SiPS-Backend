@@ -1,7 +1,6 @@
 import { Response, Request, NextFunction } from 'express';
 import prisma from '../lib/prisma';
 import { GenerateResponse } from '../utils/GenerateResponse';
-import { JwtPayload } from 'jsonwebtoken';
 import httpStatusCode from '../utils/HttpStatusCode';
 import { CustomRequest } from './jwt';
 
