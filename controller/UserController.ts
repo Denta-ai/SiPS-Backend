@@ -5,6 +5,7 @@ import httpStatusCode from '../utils/HttpStatusCode';
 import { UserWithoutPassword } from '../utils/SelectCondition';
 import bcrypt from 'bcryptjs';
 import { SALT } from '../env';
+import { imageKit } from '../service/imageKit';
 
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
@@ -46,9 +47,15 @@ export const getUserById = async (req: Request, res: Response) => {
 
 export const updateUser = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { username, email, password, phoneNumber } = req.body;
+  const { username, email, phoneNumber } = req.body;
 
   try {
+    const stringFile = req.file?.buffer.toString('base64') as string;
+    const data = await imageKit.upload({
+      fileName: req.file?.originalname || 'image',
+      file: stringFile,
+    });
+
     const user = await prisma.user.findFirst({
       where: {
         id: Number(id),
@@ -61,15 +68,13 @@ export const updateUser = async (req: Request, res: Response) => {
       return;
     }
 
-    const hashedPassword = await bcrypt.hash(password, SALT);
-
     const updatedUser = await prisma.user.update({
       where: { id: Number(id) },
       data: {
         username,
         email,
-        password: hashedPassword,
         phoneNumber,
+        profilePicture: data.url,
       },
       select: UserWithoutPassword,
     });

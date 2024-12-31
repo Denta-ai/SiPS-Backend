@@ -76,8 +76,15 @@ export const login = async (req: Request, res: Response) => {
       return;
     }
 
-    const token = generateJwtToken(user);
-    GenerateResponse(res, httpStatusCode.OK, 'Login successful', { ...user, token });
+    const newUser = await prisma.user.findUnique({
+      where: {
+        username,
+      },
+      select: UserWithoutPassword,
+    });
+
+    const token = generateJwtToken(newUser as JWTPayload);
+    GenerateResponse(res, httpStatusCode.OK, 'Login successful', { ...newUser, token });
   } catch (error) {
     console.log(error);
     GenerateResponse(res, httpStatusCode.INTERNAL_SERVER_ERROR, 'Internal server error', null);
@@ -88,7 +95,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
   const { email } = req.body;
 
   try {
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({ where: { email }, select: UserWithoutPassword });
 
     if (!user) {
       GenerateResponse(res, httpStatusCode.NOT_FOUND, 'User not found', 'null');
@@ -122,6 +129,7 @@ export const verifyOtp = async (req: Request, res: Response) => {
     const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
     const user = await prisma.user.findUnique({
       where: { email: decoded.email },
+      select: UserWithoutPassword,
     });
 
     if (decoded.otp !== otp) {

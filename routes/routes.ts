@@ -10,7 +10,9 @@ import {
 import { restrict } from '../middleware/jwt';
 import { deleteUser, getAllUsers, getUserById, updateUser } from '../controller/UserController';
 import passport from '../service/passport';
+import multer from 'multer';
 const routes: Router = express.Router();
+const upload = multer();
 
 routes.post('/api/register', register);
 routes.post('/api/login', login);
@@ -29,7 +31,7 @@ routes.get(
 
 routes.get('/api/users', restrict, getAllUsers);
 routes.get('/api/users/:id', restrict, getUserById);
-routes.put('/api/users/:id', restrict, updateUser);
+routes.put('/api/users/:id', restrict, upload.single('profilePicture'), updateUser);
 routes.delete('/api/users/:id', restrict, deleteUser);
 
 export default routes;
