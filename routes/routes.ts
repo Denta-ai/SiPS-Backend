@@ -52,7 +52,7 @@ routes.delete('/api/users/:id', restrict, deleteUser);
 
 routes.get('/api/schedules', restrict, getAllSchedules);
 routes.get('/api/schedules/:id', restrict, getScheduleById);
-routes.post('/api/create-schedules', restrict, admin, createSchedules);
+routes.post('/api/schedules', restrict, admin, createSchedules);
 routes.put('/api/schedules/:id', restrict, admin, updateSchedules);
 routes.delete('/api/schedules/:id', restrict, admin, deleteSchedules);
 
