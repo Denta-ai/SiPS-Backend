@@ -60,7 +60,7 @@ routes.post('/api/bookings', restrict, upload.single('paymentProof'), createBook
 routes.get('/api/bookings', restrict, getAllBookings);
 routes.get('/api/bookings/:id', restrict, getBookingById);
 routes.get('/api/bookings/user/:userId', restrict, getBookingByUserId);
-routes.put('/api/bookings/:id/status', restrict, admin, updateBookingStatus);
+routes.patch('/api/bookings/:id/status', restrict, admin, updateBookingStatus);
 routes.delete('/api/bookings/:id', restrict, deleteBooking);
 
 export default routes;
