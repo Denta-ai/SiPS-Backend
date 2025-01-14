@@ -3,8 +3,6 @@ import prisma from '../lib/prisma';
 import { GenerateResponse } from '../utils/GenerateResponse';
 import httpStatusCode from '../utils/HttpStatusCode';
 import { UserWithoutPassword } from '../utils/SelectCondition';
-import bcrypt from 'bcryptjs';
-import { SALT } from '../env';
 import { imageKit } from '../service/imageKit';
 
 export const getAllUsers = async (req: Request, res: Response) => {
@@ -48,13 +46,17 @@ export const getUserById = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
   const { id } = req.params;
   const { username, email, phoneNumber } = req.body;
+  let profilePicture;
 
   try {
-    const stringFile = req.file?.buffer.toString('base64') as string;
-    const data = await imageKit.upload({
-      fileName: req.file?.originalname || 'image',
-      file: stringFile,
-    });
+    if (req.file) {
+      const stringFile = req.file.buffer.toString('base64');
+      const uploadResponse = await imageKit.upload({
+        fileName: req.file.originalname || 'image',
+        file: stringFile,
+      });
+      profilePicture = uploadResponse.url;
+    }
 
     const user = await prisma.user.findFirst({
       where: {
@@ -74,7 +76,7 @@ export const updateUser = async (req: Request, res: Response) => {
         username,
         email,
         phoneNumber,
-        profilePicture: data.url,
+        profilePicture: profilePicture || user.profilePicture || null,
       },
       select: UserWithoutPassword,
     });
