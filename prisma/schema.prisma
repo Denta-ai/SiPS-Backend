@@ -50,7 +50,7 @@ model Transaction {
   bandName        String            @map("band_name")
   duration        Int
   transactionCode String            @unique @map("transaction_code") @db.VarChar(10)
-  paymentProof    String            @map("payment_proof")
+  paymentProof    String?            @map("payment_proof")
   totalPrice      Decimal           @map("total_price")
   notes           String
   status          TransactionStatus

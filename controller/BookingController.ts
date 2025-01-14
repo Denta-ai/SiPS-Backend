@@ -8,17 +8,20 @@ import { imageKit } from '../service/imageKit';
 export const createBooking = async (req: Request, res: Response) => {
   const { userId, scheduleId, bandName, duration, totalPrice, notes } = req.body;
 
-  console.log('Received scheduleId:', scheduleId, 'Type:', typeof scheduleId);
-
   const parsedScheduleId = parseInt(scheduleId);
   const parsedDuration = parseInt(duration);
+  let paymentProof;
 
   try {
-    const stringFile = req.file?.buffer.toString('base64') as string;
-    const data = await imageKit.upload({
-      fileName: req.file?.originalname || 'image',
-      file: stringFile,
-    });
+    if (req.file) {
+      const stringFile = req.file.buffer.toString('base64');
+      const uploadResponse = await imageKit.upload({
+        fileName: req.file.originalname || 'image',
+        file: stringFile,
+      });
+      paymentProof = uploadResponse.url;
+    }
+
     const schedule = await prisma.schedule.findUnique({
       where: { id: parsedScheduleId },
     });
@@ -38,7 +41,7 @@ export const createBooking = async (req: Request, res: Response) => {
         userId: Number(userId),
         bandName,
         duration: parsedDuration,
-        paymentProof: data.url,
+        paymentProof: paymentProof || null,
         totalPrice,
         notes,
         status: 'pending',
